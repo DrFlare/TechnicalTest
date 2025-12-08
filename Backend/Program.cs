@@ -1,8 +1,22 @@
+using Backend.DataAccess;
+using Backend.Services;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddControllers().Services.AddDbContext<WebshopDbContext>(options => 
+	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<ProductService>();
+
+if (builder.Environment.IsDevelopment())
+{
+	builder.Services.AddScoped<DummyDataService>(provider => new DummyDataService(provider.GetRequiredService<ProductService>()));
+}
 
 var app = builder.Build();
 
@@ -14,28 +28,17 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
+app.MapGet("/dbtest", (ProductService productService) =>
 {
-	"Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+	var products = productService.Get();
+	return products;
+});
 
-app.MapGet("/weatherforecast", () =>
-	{
-		var forecast = Enumerable.Range(1, 5).Select(index =>
-				new WeatherForecast
-				(
-					DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-					Random.Shared.Next(-20, 55),
-					summaries[Random.Shared.Next(summaries.Length)]
-				))
-			.ToArray();
-		return forecast;
-	})
-	.WithName("GetWeatherForecast");
+app.MapGet("/insertDummyData", async (DummyDataService dummyDataService) =>
+{
+	if (!app.Environment.IsDevelopment()) return Results.BadRequest();
+	await dummyDataService.InsertDummyData();
+	return Results.Ok();
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-	public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
