@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, OnInit, signal, WritableSignal} from '@angular/core';
 import {Product} from '../product/product';
 import {ProductApi} from '../product/product-api';
 import {ProductCard} from './product-card/product-card';
@@ -12,13 +12,20 @@ import {ProductCard} from './product-card/product-card';
 	styleUrl: './webshop.css',
 })
 export class Webshop implements OnInit {
-	protected products: Product[] = [];
 	private productService: ProductApi = inject(ProductApi);
+	protected products: WritableSignal<Product[]> = signal([]);
+	protected isLoading: WritableSignal<boolean> = signal(false);
+	public columnCount: number = 5;
 
 	ngOnInit(): void {
+		this.isLoading.set(true);
 		this.productService.getProducts().subscribe({
-			next: (data) => this.products = data,
-			error: (err) => console.error('Failed to retrieve products', err)
+			next: (data) => this.products.set(data),
+			error: (err) => {
+				console.error('Failed to retrieve products', err);
+				this.isLoading.set(false);
+			},
+			complete: () => { this.isLoading.set(false); }
 		});
 	}
 }

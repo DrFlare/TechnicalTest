@@ -77,11 +77,11 @@ main {
 	margin-top: 1.5rem;
 }
 
-#header-title {
+.header-title {
 	cursor: pointer;
 }
 
-#cart-button {
+.cart-button {
 	display: block;
 	font-size: var(--cart-icon-size);
 	width: var(--cart-icon-size);

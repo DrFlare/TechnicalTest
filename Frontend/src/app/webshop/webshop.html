@@ -1,5 +1,14 @@
-<div class="product-grid">
-	@for (currentProduct of products; track currentProduct.id){
-		<app-product-card [product]="currentProduct"></app-product-card>
-	}
-</div>
+@if (isLoading()){
+	<div class="loading-label-container">
+		<label>Loading...</label>
+	</div>
+} @else {
+	<div class="product-grid" [style.grid-template-columns]="'repeat(' + columnCount + ', 1fr)'">
+		@for (currentProduct of products(); track currentProduct.id){
+			<app-product-card [product]="currentProduct"></app-product-card>
+		} @empty {
+			<!--TODO: what if no products-->
+		}
+	</div>
+}
+
