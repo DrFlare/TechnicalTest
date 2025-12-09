@@ -1,0 +1,5 @@
+<div class="product-grid">
+	@for (currentProduct of products; track currentProduct.id){
+		<app-product-card [product]="currentProduct"></app-product-card>
+	}
+</div>

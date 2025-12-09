@@ -1,6 +1,6 @@
 import {Routes} from '@angular/router';
-import {Webshop} from './pages/webshop/webshop';
-import {Cart} from './pages/cart/cart';
+import {Webshop} from './webshop/webshop';
+import {Cart} from './cart/cart';
 
 export const routes: Routes = [
 	{path: '', component: Webshop},

@@ -1,4 +1,4 @@
-.product-table {
+.product-grid {
 	width: 100%;
 	border-collapse: collapse;
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -6,12 +6,12 @@
 	margin: 20px 0;
 }
 
-.product-table thead {
+.product-grid thead {
 	background-color: #4a6fa5;
 	color: white;
 }
 
-.product-table th {
+.product-grid th {
 	padding: 12px 15px;
 	text-align: left;
 	font-weight: 600;
@@ -20,19 +20,19 @@
 	letter-spacing: 1px;
 }
 
-.product-table tbody tr {
+.product-grid tbody tr {
 	border-bottom: 1px solid #e0e0e0;
 }
 
-.product-table tbody tr:nth-child(even) {
+.product-grid tbody tr:nth-child(even) {
 	background-color: #f8f9fa;
 }
 
-.product-table tbody tr:hover {
+.product-grid tbody tr:hover {
 	background-color: #f1f5fd;
 }
 
-.product-table td {
+.product-grid td {
 	padding: 12px 15px;
 	color: #333;
 }
