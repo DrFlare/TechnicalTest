@@ -1,4 +1,5 @@
 using Backend.DataAccess;
+using Backend.Models;
 using Backend.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,7 +17,26 @@ if (builder.Environment.IsDevelopment())
 	builder.Services.AddSingleton<DummyDataService>();
 }
 
+var corsSettings = builder.Configuration.GetSection("Cors").Get<CorsSettings>();
+
+if (corsSettings is { AllowedOrigins.Length: > 0 })
+{
+	builder.Services.AddCors(options =>
+	{
+		options.AddPolicy("AllowWebFrontend",
+			policy =>
+			{
+				policy.WithOrigins(corsSettings.AllowedOrigins)
+					.AllowAnyMethod()
+					.AllowAnyHeader()
+					.AllowCredentials();
+			});
+	});
+}
+
 var app = builder.Build();
+
+app.UseCors("AllowWebFrontend");
 
 if (app.Environment.IsDevelopment())
 {

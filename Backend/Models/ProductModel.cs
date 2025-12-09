@@ -7,9 +7,14 @@ public class ProductModel
 {
 	public ProductModel()
 	{
+		Id = Guid.NewGuid();
+		Name = string.Empty;
+		Price = 0;
+		CurrencyCode = string.Empty;
+		Description = string.Empty;
+		Quantity = 0;
 	}
 
-	[SetsRequiredMembers]
 	public ProductModel(Guid id, string name, decimal price, string currencyCode, string description, int quantity)
 	{
 		Id = id;
@@ -25,10 +30,10 @@ public class ProductModel
 	[StringLength(30)]
 	public string Name { get; set; }
 	public decimal Price { get; set; }
-	public int Quantity { get; set; }
 	
-	[StringLength(4)]
-	public string? CurrencyCode { get; set; }
+	[StringLength(3)]
+	public string CurrencyCode { get; set; }
+	public int Quantity { get; set; }
 	
 	[StringLength(100)]
 	public string? Description { get; set; }

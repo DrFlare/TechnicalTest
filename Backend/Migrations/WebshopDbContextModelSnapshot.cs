@@ -29,8 +29,9 @@ namespace Backend.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CurrencyCode")
-                        .HasMaxLength(4)
-                        .HasColumnType("nvarchar(4)");
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(100)
