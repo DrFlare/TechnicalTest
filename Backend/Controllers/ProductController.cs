@@ -1,14 +1,11 @@
-﻿using Backend.DataAccess;
-using Backend.Models;
+﻿using Backend.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Backend.Controllers;
 
 [ApiController]
-[Route("/products/[controller]")]
+[Route("products")]
 public class ProductController(ProductService productService) : ControllerBase
 {
 	[HttpGet]
@@ -17,8 +14,8 @@ public class ProductController(ProductService productService) : ControllerBase
 		return await productService.Get();
 	}
 	 
-	[HttpGet]
-	public async Task<EntityEntry<ProductModel>> Add(ProductModel product)
+	[HttpPost]
+	public async Task<ProductModel> Add([FromBody] ProductModel product)
 	{
 		return await productService.Add(product);
 	}
