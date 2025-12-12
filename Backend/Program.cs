@@ -74,7 +74,7 @@ if (app.Environment.IsDevelopment())
 	app.MapGet("/loadDummyData", async (IProductService productService) =>
 	{
 		await productService.ResetAndLoadDummyData();
-		return Results.Ok();
+		return Results.Ok("dummy data loaded");
 	});
 }
 
