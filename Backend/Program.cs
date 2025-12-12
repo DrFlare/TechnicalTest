@@ -8,8 +8,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddControllers().Services.AddDbContext<WebshopDbContext>(options => 
-	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddControllers().Services.AddDbContext<WebshopDbContext>(options =>
+	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+		sqlOptions => sqlOptions.EnableRetryOnFailure(
+			maxRetryCount: 5,
+			maxRetryDelay: TimeSpan.FromSeconds(10),
+			errorNumbersToAdd: null)));
 
 builder.Services.AddSingleton<InventoryService>();
 builder.Services.AddHostedService<CartCleanupService>();
@@ -39,6 +43,22 @@ if (corsSettings is { AllowedOrigins.Length: > 0 })
 }
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+	var dbContext = scope.ServiceProvider.GetRequiredService<WebshopDbContext>();
+
+	if (!await dbContext.Database.CanConnectAsync())
+	{
+		await dbContext.Database.EnsureCreatedAsync();
+	}
+
+	var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+	if (pendingMigrations.Any())
+	{
+		await dbContext.Database.MigrateAsync();
+	}
+}
 
 app.UseCors("AllowWebFrontend");
 
