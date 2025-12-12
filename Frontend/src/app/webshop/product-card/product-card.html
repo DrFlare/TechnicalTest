@@ -1,13 +1,14 @@
 <div class="card-container">
-	<!--TODO: product picture here-->
+	<img class="product-image" alt="{{product.name}}" src=""/> <!--TODO src-->
 	<label class="product-name-label">
 		{{product.name}}
 	</label>
 	<label class="product-price-label">
-		{{product.price}} {{product.currencyCode}}
-		<!--TODO: map ISO currency codes to currency symbols-->
+		{{product.price}} {{getCurrencyLabel(product.currencyCode)}}
 	</label>
 	<!--TODO: finish buttons-->
-	<button class="add-to-cart-button"></button>
-	<button class="more-info-button"></button>
+	<button class="add-to-cart-button" (click)="cartService.addToCart(createRequestModel())"><mat-icon>shopping_cart</mat-icon>Add to cart</button>
+	<button class="more-info-button">
+		<mat-icon>info</mat-icon>
+	</button>
 </div>

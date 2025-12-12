@@ -12,7 +12,7 @@ import {ProductCard} from './product-card/product-card';
 	styleUrl: './webshop.css',
 })
 export class Webshop implements OnInit {
-	private productService: ProductApi = inject(ProductApi);
+	protected productService: ProductApi = inject(ProductApi);
 	protected products: WritableSignal<Product[]> = signal([]);
 	protected isLoading: WritableSignal<boolean> = signal(false);
 	public columnCount: number = 5;

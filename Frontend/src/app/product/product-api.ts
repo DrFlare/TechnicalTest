@@ -13,4 +13,8 @@ export class ProductApi {
 	public getProducts(): Observable<Product[]>{
 		return this.http.get<Product[]>(environment.backendUrl + '/products');
 	}
+
+	public addDummyProducts(): void {
+		this.http.get<Product[]>(environment.backendUrl + '/loadDummyData');
+	}
 }

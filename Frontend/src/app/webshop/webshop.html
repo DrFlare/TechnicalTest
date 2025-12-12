@@ -7,7 +7,8 @@
 		@for (currentProduct of products(); track currentProduct.id){
 			<app-product-card [product]="currentProduct"></app-product-card>
 		} @empty {
-			<!--TODO: what if no products-->
+			<p>No products in database!</p>
+			<button (click)="productService.addDummyProducts()">Add dummy products to database</button>
 		}
 	</div>
 }
