@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
-public class ProductService(WebshopDbContext dbContext, DummyDataService dummyDataService)
+public class ProductService(WebshopDbContext dbContext, DummyDataService dummyDataService): IProductService
 {
 	public async Task<List<ProductModel>> GetProducts()
 	{

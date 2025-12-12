@@ -1,6 +1,7 @@
 using Backend.DataAccess;
 using Backend.Models;
 using Backend.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,10 +11,10 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers().Services.AddDbContext<WebshopDbContext>(options => 
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddHostedService<InventoryService>();
+builder.Services.AddSingleton<InventoryService>();
 builder.Services.AddHostedService<CartCleanupService>();
-builder.Services.AddScoped<CartService>();
-builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 if (builder.Environment.IsDevelopment())
 {
@@ -50,7 +51,7 @@ app.UseHttpsRedirection();
 
 if (app.Environment.IsDevelopment())
 {
-	app.MapGet("/loadDummyData", async (ProductService productService) =>
+	app.MapGet("/loadDummyData", async (IProductService productService) =>
 	{
 		await productService.ResetAndLoadDummyData();
 		return Results.Ok();

@@ -6,7 +6,7 @@ namespace Backend.Controllers;
 
 [ApiController]
 [Route("products")]
-public class ProductController(ProductService productService, InventoryService inventoryService) : ControllerBase
+public class ProductController(IProductService productService, InventoryService inventoryService) : ControllerBase
 {
 	[HttpGet]
 	public IEnumerable<ProductModel> Get()

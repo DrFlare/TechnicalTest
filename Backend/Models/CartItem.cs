@@ -2,8 +2,10 @@
 
 public class CartItem(Guid productId, int quantity)
 {
-	public Guid ProductId { get; } = productId;
+	public Guid ProductId { get; set; } = productId;
 	public int Quantity { get; set; } = quantity;
+
+	public CartItem() : this(Guid.Empty, 0) {}
 
 	public override bool Equals(object? obj)
 	{

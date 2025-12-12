@@ -36,4 +36,9 @@ public class ProductModel
 	
 	[StringLength(100)]
 	public string? Description { get; set; }
+	
+	public static ProductModel Copy(ProductModel source)
+	{
+		return new ProductModel(source.Id, source.Name, source.Price, source.CurrencyCode, source.Description, source.Quantity);
+	}
 }

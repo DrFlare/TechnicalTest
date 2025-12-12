@@ -4,38 +4,51 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
-public class CartService(WebshopDbContext dbContext, InventoryService inventoryService)
+public class CartService(WebshopDbContext dbContext, InventoryService inventoryService): ICartService
 {
-	public CartModel CreateNewCart()
+	public async Task<CartModel> CreateNewCart()
 	{
 		var cart = new CartModel(Guid.NewGuid());
 		dbContext.Carts.Add(cart);
+		await dbContext.SaveChangesAsync();
 		return cart;
 	}
 
-	public async Task<bool> AddToCart(Guid cartId, CartItem item)
+	public async Task<CartModel> AddToCart(Guid cartId, CartItem item)
 	{
-		var cart = await dbContext.Carts.FindAsync(cartId) ?? CreateNewCart();
+		var cart = await dbContext.Carts.FindAsync(cartId) ?? await CreateNewCart();
 		if (inventoryService.MakeReservation(item) == false)
 		{
 			// New item reservation unsuccessful
-			return false;
+			return cart;
 		}
 		cart.AddItem(item);
 		await dbContext.SaveChangesAsync();
-		return true;
+		return cart;
 	}
 
-	public async Task RemoveFromCart(Guid cartId, CartItem item)
+	public async Task<CartModel> RemoveFromCart(Guid cartId, CartItem item)
 	{
 		var cart = await GetCartById(cartId);
 		if (cart == null)
 		{
-			return;
+			return cart;
 		}
 		inventoryService.CancelReservation(item);
 		cart.RemoveItem(item);
 		await dbContext.SaveChangesAsync();
+		return cart;
+	}
+
+	public async Task<bool> CompletePurchase(Guid cartId)
+	{
+		var cart = await GetCartById(cartId);
+		if (cart == null || await inventoryService.RemoveItemsFromStock(cart) == false)
+		{
+			return false;
+		}
+		await EmptyCart(cart);
+		return true;
 	}
 	
 	public async Task EmptyCart(CartModel cart)
@@ -56,7 +69,7 @@ public class CartService(WebshopDbContext dbContext, InventoryService inventoryS
 	{
 		dbContext.Carts.RemoveRange(carts);
 		await dbContext.SaveChangesAsync();
-		_ = inventoryService.UpdateCacheFromDb();
+		inventoryService.UpdateReservations(await GetCarts());
 	}
 	
 	public async Task<List<CartModel>> GetCarts()

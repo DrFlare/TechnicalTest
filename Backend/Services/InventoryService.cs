@@ -2,21 +2,30 @@
 
 namespace Backend.Services;
 
-public class InventoryService(ProductService productService, CartService cartService) : IHostedService
+public class InventoryService
 {
+	private readonly IServiceScopeFactory _scopeFactory;
+	private readonly ICartService _cartService;
 	private readonly Dictionary<Guid, ProductModel> _productCache = new();
 	private readonly Dictionary<Guid, int> _productReservations = new();
+
+	public InventoryService(IServiceScopeFactory scopeFactory)
+	{
+		_scopeFactory = scopeFactory;
+		UpdateCacheFromDb().GetAwaiter().GetResult();
+	}
 
 	public IEnumerable<ProductModel> GetProducts()
 	{
 		// Returns products that are not reserved in other users' carts
-		var availableProducts = new Dictionary<Guid, ProductModel>(_productCache);
+		// TODO: THIS SUCKS: MAKE A DEEP COPY
+		var availableProducts = _productCache.Values.ToList().ConvertAll(ProductModel.Copy);
 		foreach (var reservation in _productReservations)
 		{
-			availableProducts[reservation.Key].Quantity -= reservation.Value;
+			availableProducts.First(product => product.Id == reservation.Key).Quantity -= reservation.Value;
 		}
 
-		return availableProducts.Values;
+		return availableProducts;
 	}
 
 	public bool MakeReservation(CartItem cartItem)
@@ -55,16 +64,11 @@ public class InventoryService(ProductService productService, CartService cartSer
 			_productReservations[cartItem.ProductId] -= cartItem.Quantity;
 		}
 	}
-
-
-	public async Task<bool> CompletePurchase(Guid cartId)
+	
+	public async Task<bool> RemoveItemsFromStock(CartModel cart)
 	{
-		var cart = await cartService.GetCartById(cartId);
-		if (cart == null)
-		{
-			return false;
-		}
-
+		using var scope = _scopeFactory.CreateScope();
+		var productService = scope.ServiceProvider.GetRequiredService<IProductService>();
 		var productsToUpdate = new List<ProductModel>();
 		var bError = false;
 		foreach (var cartItem in cart.Items)
@@ -81,8 +85,6 @@ public class InventoryService(ProductService productService, CartService cartSer
 			productsToUpdate.Add(result.Item2);
 		}
 
-		await cartService.EmptyCart(cart);
-
 		if (bError)
 		{
 			return false;
@@ -94,31 +96,25 @@ public class InventoryService(ProductService productService, CartService cartSer
 
 	public async Task UpdateCacheFromDb()
 	{
+		using var scope = _scopeFactory.CreateScope();
+		var productService = scope.ServiceProvider.GetRequiredService<IProductService>();
 		_productCache.Clear();
 		var products = await productService.GetProducts();
 		foreach (var product in products)
 		{
 			_productCache[product.Id] = product;
 		}
+	}
 
-		var validCarts = await cartService.GetCarts();
+	public void UpdateReservations(IEnumerable<CartModel> carts)
+	{
 		_productReservations.Clear();
-		foreach (var cart in validCarts)
+		foreach (var cart in carts)
 		{
 			foreach (var cartItem in cart.Items)
 			{
 				_productCache[cartItem.ProductId].Quantity -= cartItem.Quantity;
 			}
 		}
-	}
-
-	public async Task StartAsync(CancellationToken cancellationToken)
-	{
-		await UpdateCacheFromDb();
-	}
-
-	public Task StopAsync(CancellationToken cancellationToken)
-	{
-		return Task.CompletedTask;
 	}
 }

@@ -2,14 +2,17 @@
 
 namespace Backend.Services;
 
-public class CartCleanupService(CartService cartService) : BackgroundService
+public class CartCleanupService(IServiceScopeFactory scopeFactory) : BackgroundService
 {
-	private readonly TimeSpan _maxCleanupInterval = TimeSpan.FromMinutes(10);
+	private readonly TimeSpan _maxCleanupInterval = TimeSpan.FromMinutes(5);
 	
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
 		while (!stoppingToken.IsCancellationRequested)
 		{
+			using var scope = scopeFactory.CreateScope();
+			var cartService = scope.ServiceProvider.GetRequiredService<ICartService>();
+			
 			var nextCleanupDelay = _maxCleanupInterval.Ticks;
 			var carts = await cartService.GetCarts();
 			var now = DateTime.UtcNow.Ticks;
