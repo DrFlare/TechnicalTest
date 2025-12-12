@@ -6,6 +6,7 @@ namespace Backend.DataAccess;
 public class WebshopDbContext(DbContextOptions options) : DbContext(options)
 {
 	public DbSet<ProductModel> Products { get; set; }
+	public DbSet<CartModel> Carts { get; set; }
 	
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{

@@ -6,17 +6,17 @@ namespace Backend.Controllers;
 
 [ApiController]
 [Route("products")]
-public class ProductController(ProductService productService) : ControllerBase
+public class ProductController(ProductService productService, InventoryService inventoryService) : ControllerBase
 {
 	[HttpGet]
-	public async Task<IEnumerable<ProductModel>> Get()
+	public IEnumerable<ProductModel> Get()
 	{
-		return await productService.Get();
+		return inventoryService.GetProducts();
 	}
 	 
 	[HttpPost]
 	public async Task<ProductModel> Add([FromBody] ProductModel product)
 	{
-		return await productService.Add(product);
+		return await productService.AddProduct(product);
 	}
 }

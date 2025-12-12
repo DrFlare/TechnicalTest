@@ -10,6 +10,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers().Services.AddDbContext<WebshopDbContext>(options => 
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddHostedService<InventoryService>();
+builder.Services.AddHostedService<CartCleanupService>();
+builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<ProductService>();
 
 if (builder.Environment.IsDevelopment())
