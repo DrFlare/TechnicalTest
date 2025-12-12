@@ -1,0 +1,18 @@
+﻿using Backend.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace Backend.DataAccess;
+
+public class WebshopDbContext(DbContextOptions options) : DbContext(options)
+{
+	public DbSet<ProductModel> Products { get; set; }
+	public DbSet<CartModel> Carts { get; set; }
+	
+	protected override void OnModelCreating(ModelBuilder modelBuilder)
+	{
+		base.OnModelCreating(modelBuilder);
+		modelBuilder.Entity<ProductModel>().Property(p => p.Id).IsRequired();
+		modelBuilder.Entity<CartModel>().Property(p => p.Id).IsRequired();
+		modelBuilder.Entity<CartModel>().OwnsMany(c => c.Items);
+	}
+}

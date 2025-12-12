@@ -1,0 +1,15 @@
+@if (isLoading()){
+	<div class="loading-label-container">
+		<label>Loading...</label>
+	</div>
+} @else {
+	<div class="product-grid" [style.grid-template-columns]="'repeat(' + columnCount + ', 1fr)'">
+		@for (currentProduct of products(); track currentProduct.id){
+			<app-product-card [product]="currentProduct"></app-product-card>
+		} @empty {
+			<p>No products in database!</p>
+			<button (click)="productService.addDummyProducts()">Add dummy products to database</button>
+		}
+	</div>
+}
+

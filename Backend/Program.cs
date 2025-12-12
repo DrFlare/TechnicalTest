@@ -1,12 +1,67 @@
+using Backend.DataAccess;
+using Backend.Models;
+using Backend.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddControllers().Services.AddDbContext<WebshopDbContext>(options =>
+	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+		sqlOptions => sqlOptions.EnableRetryOnFailure(
+			maxRetryCount: 5,
+			maxRetryDelay: TimeSpan.FromSeconds(10),
+			errorNumbersToAdd: null)));
+
+builder.Services.AddSingleton<InventoryService>();
+builder.Services.AddHostedService<CartCleanupService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+
+if (builder.Environment.IsDevelopment())
+{
+	builder.Services.AddSingleton<DummyDataService>();
+}
+
+var corsSettings = builder.Configuration.GetSection("Cors").Get<CorsSettings>();
+
+if (corsSettings is { AllowedOrigins.Length: > 0 })
+{
+	builder.Services.AddCors(options =>
+	{
+		options.AddPolicy("AllowWebFrontend",
+			policy =>
+			{
+				policy.WithOrigins(corsSettings.AllowedOrigins)
+					.AllowAnyMethod()
+					.AllowAnyHeader()
+					.AllowCredentials();
+			});
+	});
+}
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+using (var scope = app.Services.CreateScope())
+{
+	var dbContext = scope.ServiceProvider.GetRequiredService<WebshopDbContext>();
+
+	if (!await dbContext.Database.CanConnectAsync())
+	{
+		await dbContext.Database.EnsureCreatedAsync();
+	}
+
+	var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+	if (pendingMigrations.Any())
+	{
+		await dbContext.Database.MigrateAsync();
+	}
+}
+
+app.UseCors("AllowWebFrontend");
+
 if (app.Environment.IsDevelopment())
 {
 	app.MapOpenApi();
@@ -14,28 +69,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
+if (app.Environment.IsDevelopment())
 {
-	"Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
+	app.MapGet("/loadDummyData", async (IProductService productService) =>
 	{
-		var forecast = Enumerable.Range(1, 5).Select(index =>
-				new WeatherForecast
-				(
-					DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-					Random.Shared.Next(-20, 55),
-					summaries[Random.Shared.Next(summaries.Length)]
-				))
-			.ToArray();
-		return forecast;
-	})
-	.WithName("GetWeatherForecast");
+		await productService.ResetAndLoadDummyData();
+		return Results.Ok("dummy data loaded");
+	});
+}
+
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-	public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

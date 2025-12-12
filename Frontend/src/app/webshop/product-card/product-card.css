@@ -1,0 +1,13 @@
+.card-container {
+	display: grid;
+	columns: 2
+}
+
+.card-container button{
+	display: flex;
+	align-items: center;
+}
+
+.product-image{
+	column-span: all;
+}
